@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartQuery Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>  
+  <div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="menu-top">
+        <h2>SmartQuery</h2>
+        <ul>
+          <li><a href="home.html"><img src="images/homeicon.png" class="icon" /> Home</a></li>
+          <li class="active"><a href="dashboard.html"><img src="images/adminicon.png" class="icon" /> Admin Dashboard</a></li>
+        </ul>
+      </div>
+
+      <ul class="logout">
+        <li><a href="logout.html"><img src="images/logouticon.png" class="icon" /> Logout</a></li>
+      </ul>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+      <header>
+        <h1>Admin Dashboard</h1>
+        <button id="refreshBtn" class="refresh-btn">Refresh</button>
+      </header>
+
+      <!-- Cards (top section) -->
+      <div class="cards">
+        <div class="card">
+          <h3>Total Tickets</h3>
+          <p id="totalCount" class="number">0</p>
+        </div>
+
+        <div class="card">
+          <h3>Open Tickets</h3>
+          <p id="openCount" class="number">0</p>
+        </div>
+
+        <div class="card">
+          <h3>In Progress</h3>
+          <p id="inProgressCount" class="number">0</p>
+        </div>
+
+        <div class="card">
+          <h3>Resolved</h3>
+          <p id="resolvedCount" class="number">0</p>
+        </div>
+      </div>
+
+      <!-- Tickets + Right Panel -->
+      <div class="bottom-section">
+        <!-- Ticket Table -->
+        <div class="tickets">
+          <h2>Support Tickets</h2>
+
+          <div class="filter-buttons" id="filterButtons">
+            <button data-status="all" class="active">All (<span class="count">2</span>)</button>
+            <button data-status="open">Open (<span class="count">0</span>)</button>
+            <button data-status="in-progress">Progress (<span class="count">0</span>)</button>
+            <button data-status="resolved">Resolved (<span class="count">0</span>)</button>
+          </div>
+
+          <table id="ticketsTable">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Created</th>
+                <th>Ticket ID</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr data-status="open">
+                <td>U/N/A</td>
+                <td>Product Defects</td>
+                <td><span class="status open">Open</span></td>
+                <td><span class="priority high">High</span></td>
+                <td>Sep 25, 2025</td>
+                <td>123456</td>
+                <td><a href="#" class="view-link">View</a></td>
+              </tr>
+
+              <tr data-status="in-progress">
+                <td>U/N/A</td>
+                <td>Test</td>
+                <td><span class="status in-progress">In Progress</span></td>
+                <td><span class="priority urgent">Urgent</span></td>
+                <td>Sep 24, 2025</td>
+                <td>789101X</td>
+                <td><a href="#" class="view-link">View</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Right panel -->
+        <div class="right-panel" id="rightPanel">
+          <h2>No Ticket Selected</h2>
+          <p>Click a ticket from the table to view details here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+ 

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Ticket | SmartQuery</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background-color: #f6f8fb; font-family: 'Poppins', sans-serif; padding: 40px; }
+    .ticket-box { background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 40px; max-width: 700px; margin: 0 auto; }
+    h2 { color: #4b49ac; margin-bottom: 20px; }
+    .ticket-detail p { margin: 10px 0; }
+    .response-box { margin-top: 30px; }
+    textarea { width: 100%; border: 1px solid #ccc; border-radius: 8px; padding: 10px; }
+    button { margin-top: 10px; background: #4b49ac; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #3733a2; }
+  </style>
+</head>
+<body>
+  <div class="ticket-box">
+    <h2>Ticket #00123 - Billing Issue</h2>
+    <div class="ticket-detail">
+      <p><strong>Status:</strong> In Progress</p>
+      <p><strong>Category:</strong> Billing</p>
+      <p><strong>Urgency:</strong> High</p>
+      <p><strong>Message:</strong> I was charged twice for my subscription this month.</p>
+    </div>
+
+    <div class="response-box">
+      <h3>Respond to this Ticket</h3>
+      <form action="backend/respond_ticket.php" method="POST">
+        <textarea name="response" rows="5" placeholder="Write your response..."></textarea>
+        <button type="submit">Send Response</button>
+          
+      </form>
+
+      <a href="dashboard.html"> <button class="dashboard-btn1">Go back to Dashboard</button> </a> 
+    </div>
+  </div>
+</body>
+</html>
