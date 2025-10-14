@@ -14,12 +14,9 @@
       <div class="menu-top">
         <h2>SmartQuery</h2>
         <ul> 
-            
           <li><a href="user_home.html"><img src="images/submiticon.png" class="icon"> Home</a></li>
           <li class="active"><a href="my_tickets.html"><img src="images/ticketicon.png" class="icon"> My Tickets</a></li>
           <li><a href="submit_inquiry.html"><img src="images/submiticon.png" class="icon"> Submit Inquiry</a></li>
-       
-
         </ul>
       </div>
 
@@ -61,5 +58,68 @@
   </div>
 
   <script src="script.js"></script>
+
+  <script>
+  async function loadUserTickets() {
+    try {
+      const res = await fetch("backend/get_user_tickets.php", { credentials: 'same-origin' });
+      const data = await res.json();
+
+      const tbody = document.querySelector('#userTicketsTable tbody');
+      tbody.innerHTML = '';
+
+      if (!Array.isArray(data) || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5">No tickets submitted yet.</td></tr>';
+        return;
+      }
+
+      data.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(t.subject)}</td>
+          <td><span class="status ${escapeAttr(t.status)}">${escapeHtml(t.status)}</span></td>
+          <td>${escapeHtml(t.priority ?? '')}</td>
+          <td>${escapeHtml(t.created_at)}</td>
+          <td><a href="ticket_view.html?id=${encodeURIComponent(t.id)}" class="view-link">View</a></td>
+        `;
+        tbody.appendChild(tr);
+
+        // add click handler to show details in right panel (optional)
+        tr.addEventListener('click', () => {
+          const panel = document.getElementById('userRightPanel');
+          panel.innerHTML = `
+            <h2>Ticket Details</h2>
+            <p><strong>Subject:</strong> ${escapeHtml(t.subject)}</p>
+            <p><strong>Status:</strong> ${escapeHtml(t.status)}</p>
+            <p><strong>Priority:</strong> ${escapeHtml(t.priority ?? '')}</p>
+            <p><strong>Created:</strong> ${escapeHtml(t.created_at)}</p>
+            <p style="margin-top:15px;">
+              <a href="ticket_view.html?id=${encodeURIComponent(t.id)}" class="view-link">Open Full Ticket</a>
+            </p>
+          `;
+        });
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  document.getElementById('refreshUserTickets')?.addEventListener('click', loadUserTickets);
+  window.addEventListener('DOMContentLoaded', loadUserTickets);
+
+  // small helpers to avoid XSS when inserting into DOM
+  function escapeHtml(str) {
+    if (!str && str !== 0) return '';
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/\s+/g, '-').toLowerCase();
+  }
+  </script>
 </body>
 </html>

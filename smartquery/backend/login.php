@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     die("Please provide username and password. <a href='/smartquery/login.html'>Go back</a>");
   }
 
-  $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
+  $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = ?");
   $stmt->bind_param("s", $username);
   $stmt->execute();
   $stmt->store_result();
@@ -21,17 +21,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     die("User not found. <a href='/smartquery/register.html'>Register</a>");
   }
 
-  $stmt->bind_result($id, $hashed);
+  $stmt->bind_result($id, $hashed, $role);
   $stmt->fetch();
 
   if (password_verify($password, $hashed)) {
-    // Success: set session and redirect to protected dashboard
     $_SESSION['user_id'] = $id;
     $_SESSION['username'] = $username;
+    $_SESSION['role'] = $role;
     $stmt->close();
     $conn->close();
-    header("Location: /smartquery/dashboard.php");
+
+    // ✅ Redirect based on user role
+    if ($role === 'admin') {
+      header("Location: /smartquery/dashboard.php");
+    } else {
+      header("Location: /smartquery/user_home.html");
+    }
     exit;
+
   } else {
     $stmt->close();
     $conn->close();

@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | SmartQuery</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartQuery Login</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+
   <style>
     body {
       background-color: #f6f8fb;
@@ -96,61 +100,25 @@
     }
   </style>
 </head>
-<body>
-  <div class="login-card">
-    <h2>Welcome to SmartQuery</h2>
-    <form id="loginForm">
+<body class="login-page">
+  <div class="login-container">
+    <h2>SmartQuery Admin Login</h2>
+    <form action="login.php" method="POST">
       <div class="input-group">
         <label for="username">Username</label>
-        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+        <input type="text" id="username" name="username" required />
       </div>
 
       <div class="input-group">
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        <input type="password" id="password" name="password" required />
       </div>
 
-      <button type="submit" class="login-btn">Log In</button>
-
-      <p class="footer-text">
-        Don’t have an account? <a href="register.html">Register Here</a>
-      </p>
+      <button type="submit" class="login-btn">Login</button>
     </form>
+    <p class="footer-text">
+      Don’t have an account? <a href="#">Contact Admin</a>
+    </p>
   </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <script>
-  document.getElementById("loginForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    const formData = new FormData(event.target);
-
-    try {
-      const res = await fetch("backend/login.php", {
-        method: "POST",
-        body: formData
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        await Swal.fire({
-          icon: 'success',
-          title: 'Login Successful',
-          text: data.message || 'Welcome back!',
-          confirmButtonColor: '#4b49ac'
-        });
-        window.location.href = "user_home.html";
-      } else {
-        Swal.fire('Error', data.message || 'Invalid username or password.', 'error');
-      }
-
-    } catch (error) {
-      console.error(error);
-      Swal.fire('Error', 'Network or server issue. Please try again.', 'error');
-    }
-  });
-  </script>
 </body>
 </html>

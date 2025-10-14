@@ -109,6 +109,7 @@
       <input type="text" id="subject" name="subject" required>
 
       <label for="message">Message</label>
+      <!-- changed name to "description" to match backend/add_ticket.php -->
       <textarea id="message" name="message" rows="6" required></textarea>
 
       <label for="attachment" class="upload-btn">Upload Attachment</label>
@@ -118,24 +119,41 @@
     </form>
   </div>
 
-  <!-- ✅ SweetAlert for modern confirmation popup -->
+  <!-- SweetAlert for modern confirmation popup -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script>
-    document.getElementById("inquiryForm").addEventListener("submit", function(event) {
-      event.preventDefault(); // prevent actual form submission
+  document.getElementById("inquiryForm").addEventListener("submit", async function(event) {
+    event.preventDefault(); // keep SPA feel
 
-      // ✅ Simulate success (in a real setup, you’d handle backend response)
-      Swal.fire({
-        icon: 'success',
-        title: 'Message Sent!',
-        text: 'Your inquiry has been submitted successfully.',
-        confirmButtonText: 'Go to My Tickets',
-        confirmButtonColor: '#4b49ac'
-      }).then(() => {
-        window.location.href = "my_tickets.html"; 
-      });
-    });
+    const form = event.target;
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch("../backend/submit_ticket.php", {
+  method: "POST",
+  body: formData
+});
+
+      const data = await res.json();
+
+      if (data.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Message Sent!',
+          text: data.message,
+          confirmButtonText: 'Go to My Tickets',
+          confirmButtonColor: '#4b49ac'
+        });
+        window.location.href = "my_tickets.html";
+      } else {
+        Swal.fire('Error', data.message || 'Submission failed', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', 'Network error', 'error');
+    }
+  });
   </script>
 </body>
 </html>
