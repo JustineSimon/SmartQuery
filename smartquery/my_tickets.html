@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Tickets | SmartQuery</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="menu-top">
+        <h2>SmartQuery</h2>
+        <ul> 
+            
+          <li><a href="user_home.html"><img src="images/submiticon.png" class="icon"> Home</a></li>
+          <li class="active"><a href="my_tickets.html"><img src="images/ticketicon.png" class="icon"> My Tickets</a></li>
+          <li><a href="submit_inquiry.html"><img src="images/submiticon.png" class="icon"> Submit Inquiry</a></li>
+       
+
+        </ul>
+      </div>
+
+      <ul class="logout">
+        <li><a href="logout.html"><img src="images/logouticon.png" class="icon"> Logout</a></li>
+      </ul>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+      <header>
+        <h1>My Tickets</h1>
+        <button id="refreshUserTickets" class="refresh-btn">Refresh</button>
+      </header>
+
+      <div class="tickets">
+        <h2>Submitted Inquiries</h2>
+        <table id="userTicketsTable">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Created</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Filled dynamically by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="right-panel" id="userRightPanel">
+        <h2>No Ticket Selected</h2>
+        <p>Click a ticket from the table to view details here.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

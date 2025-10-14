@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Inquiry | SmartQuery</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { 
+      background-color: #f6f8fb; 
+      font-family: 'Poppins', sans-serif; 
+      margin: 0; 
+      padding: 40px; 
+    }
+
+    .form-container { 
+      background: white; 
+      padding: 40px; 
+      border-radius: 16px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+      max-width: 600px; 
+      margin: 0 auto; 
+      position: relative;
+    }
+
+    h2 { 
+      color: #4b49ac; 
+      text-align: center; 
+      margin-bottom: 25px; 
+    }
+
+    label { 
+      display: block; 
+      margin: 10px 0 5px; 
+      font-weight: 500; 
+    }
+
+    input, textarea, select { 
+      width: 100%; 
+      padding: 10px; 
+      border: 1px solid #ccc; 
+      border-radius: 8px; 
+      margin-bottom: 15px; 
+    }
+
+    button { 
+      background: #4b49ac; 
+      color: white; 
+      border: none; 
+      padding: 12px; 
+      width: 100%; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      transition: 0.3s; 
+    }
+
+    button:hover { 
+      background: #3733a2; 
+    }
+
+    .upload-btn {
+      display: inline-block;
+      background-color: #4b49ac;
+      color: white;
+      padding: 6px 17px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
+
+    .upload-btn:hover {
+      background-color: #3733a2;
+    }
+
+    /* ✅ Go Back Button */
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background-color: #4b49ac;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.3s;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-btn:hover {
+      background-color: #3733a2;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="form-container">
+
+    <!-- ✅ Back to Home Button -->
+    <a href="user_home.html" class="back-btn">← Go Back to Home</a>
+
+    <h2>Submit Inquiry</h2>
+  
+    <form id="inquiryForm" method="POST" enctype="multipart/form-data">
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" name="subject" required>
+
+      <label for="message">Message</label>
+      <textarea id="message" name="message" rows="6" required></textarea>
+
+      <label for="attachment" class="upload-btn">Upload Attachment</label>
+      <input type="file" id="attachment" name="attachment" hidden>
+
+      <button type="submit">Submit Inquiry</button>
+    </form>
+  </div>
+
+  <!-- ✅ SweetAlert for modern confirmation popup -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    document.getElementById("inquiryForm").addEventListener("submit", function(event) {
+      event.preventDefault(); // prevent actual form submission
+
+      // ✅ Simulate success (in a real setup, you’d handle backend response)
+      Swal.fire({
+        icon: 'success',
+        title: 'Message Sent!',
+        text: 'Your inquiry has been submitted successfully.',
+        confirmButtonText: 'Go to My Tickets',
+        confirmButtonColor: '#4b49ac'
+      }).then(() => {
+        window.location.href = "my_tickets.html"; 
+      });
+    });
+  </script>
+</body>
+</html>
