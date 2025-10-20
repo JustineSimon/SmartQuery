@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartQuery Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+</head>
+
+<body>  
+  <div class="dashboard">
+
+    <!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="menu-top">
+    <h2>SmartQuery</h2>
+    <ul>
+      <li>
+        <a href="home.html">
+          <i class="fa-solid fa-house icon"></i>
+          Home
+        </a>
+      </li>
+
+      <li class="active">
+        <a href="dashboard.html">
+          <i class="fa-solid fa-user-gear icon"></i>
+          Admin Dashboard
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <ul class="logout">
+    <li>
+      <a href="logout.html" class="logout-link">
+        <i class="fa-solid fa-right-from-bracket icon"></i>
+        Logout
+      </a>
+    </li>
+  </ul>
+</div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+      <header>
+        <h1>Admin Dashboard</h1>
+        <button id="refreshBtn" class="refresh-btn">
+  <i class="fa-solid fa-rotate-right"></i> Refresh
+</button>
+      </header>
+
+      <!-- Cards (top section) -->
+      <div class="cards">
+        <div class="card">
+          <h3><i class="fa-solid fa-ticket"></i>Total Tickets</h3>
+          <p id="totalCount" class="number">0</p>
+        </div>
+
+        <div class="card">
+          <h3><i class="fa-solid fa-envelope-open-text" style="color:#4caf50;"></i>Open Tickets</h3>
+          <p id="openCount" class="number">0</p>
+        </div>
+
+        <div class="card">
+          <h3><i class="fa-solid fa-spinner" style="color:#ff9800;"> </i>In Progress</h3>
+          <p id="inProgressCount" class="number">0</p>
+        </div>
+
+        <div class="card">
+         <h3> <i class="fa-solid fa-circle-check" style="color:#2196f3;"></i>Resolved</h3>
+          <p id="resolvedCount" class="number">0</p>
+        </div>
+      </div>
+
+
+
+
+      <!-- Tickets + Right Panel -->
+      <div class="bottom-section">
+        <!-- Ticket Table -->
+        <div class="tickets">
+          <h2>Support Tickets</h2>
+
+          <div class="filter-buttons" id="filterButtons">
+            <button data-status="all" class="active">All (<span class="count">2</span>)</button>
+            <button data-status="open">Open (<span class="count">0</span>)</button>
+            <button data-status="in-progress">Progress (<span class="count">0</span>)</button>
+            <button data-status="resolved">Resolved (<span class="count">0</span>)</button>
+          </div>
+
+          <table id="ticketsTable">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Created</th>
+                <th>Ticket ID</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr data-status="open">
+                <td>U/N/A</td>
+                <td>Product Defects</td>
+                <td><span class="status open">Open</span></td>
+                <td><span class="priority high">High</span></td>
+                <td>Sep 25, 2025</td>
+                <td>123456</td>
+                <td><a href="#" class="view-link"><i class="fa-solid fa-eye"></i>&nbsp;View</a> </td>
+              </tr>
+
+              <tr data-status="in-progress">
+                <td>U/N/A</td>
+                <td>Test</td>
+                <td><span class="status in-progress">In Progress</span></td>
+                <td><span class="priority urgent">Urgent</span></td>
+                <td>Sep 24, 2025</td>
+                <td>789101X</td>
+                <td><a href="#" class="view-link"><i class="fa-solid fa-eye"></i>&nbsp;View</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+  
+      </div>
+
+<div id="ticketModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+
+    <div class="modal-details">
+      <h2>Ticket Details</h2>
+      <p><strong>Customer:</strong> <span id="modalCustomer">U/N/A</span></p>
+      <p><strong>Subject:</strong> <span id="modalSubject">Product Defects</span></p>
+      <p><strong>Status:</strong> <span id="modalStatus">Open</span></p>
+      <p><strong>Priority:</strong> <span id="modalPriority">High</span></p>
+      <p><strong>Created:</strong> <span id="modalCreated">Sep 25, 2025</span></p>
+      <p><strong>Ticket ID:</strong> <span id="modalTicketID">123456</span></p>
+    </div>
+
+    <div class="response-box">
+      <h3>Respond to this Ticket</h3>
+      <form id="responseForm" action="backend/respond_ticket.php" method="POST">
+        <textarea name="response" rows="5" placeholder="Write your response..." required></textarea>
+        <button type="submit" class="send-btn">Send Response</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+
+
+    </div>
+  </div>
+
+  
+
+  <script src="script.js"></script>
+</body>
+</html>
+ 
