@@ -5,23 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Tickets | SmartQuery</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
   <div class="dashboard">
-
     <!-- SIDEBAR -->
     <div class="sidebar">
       <div class="menu-top">
         <h2>SmartQuery</h2>
-        <ul> 
-          <li><a href="user_home.html"><img src="images/submiticon.png" class="icon"> Home</a></li>
-          <li class="active"><a href="my_tickets.html"><img src="images/ticketicon.png" class="icon"> My Tickets</a></li>
-          <li><a href="submit_inquiry.html"><img src="images/submiticon.png" class="icon"> Submit Inquiry</a></li>
+        <ul>
+          <li><a href="user_home.html"><i class="fas fa-home"></i> Home</a></li>
+          <li class="active"><a href="my_tickets.html"><i class="fas fa-ticket-alt"></i> My Tickets</a></li>
+          <li><a href="submit_inquiry.html"><i class="fas fa-paper-plane"></i> Submit Inquiry</a></li>
         </ul>
       </div>
-
       <ul class="logout">
-        <li><a href="logout.html"><img src="images/logouticon.png" class="icon"> Logout</a></li>
+        <li><a href="logout.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
     </div>
 
@@ -29,7 +29,7 @@
     <div class="main">
       <header>
         <h1>My Tickets</h1>
-        <button id="refreshUserTickets" class="refresh-btn">Refresh</button>
+        <button id="refreshUserTickets" class="refresh-btn"><i class="fas fa-sync-alt"></i> Refresh</button>
       </header>
 
       <div class="tickets">
@@ -41,11 +41,10 @@
               <th>Status</th>
               <th>Priority</th>
               <th>Created</th>
-              <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            <!-- Filled dynamically by JS -->
+            <!-- Filled dynamically -->
           </tbody>
         </table>
       </div>
@@ -57,69 +56,67 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
-
   <script>
-  async function loadUserTickets() {
-    try {
-      const res = await fetch("backend/get_user_tickets.php", { credentials: 'same-origin' });
-      const data = await res.json();
+async function loadUserTickets() {
+  try {
+    const res = await fetch("backend/get_user_tickets.php");
+    const data = await res.json();
 
-      const tbody = document.querySelector('#userTicketsTable tbody');
-      tbody.innerHTML = '';
+    const tbody = document.querySelector("#userTicketsTable tbody");
+    tbody.innerHTML = "";
 
-      if (!Array.isArray(data) || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">No tickets submitted yet.</td></tr>';
-        return;
-      }
-
-      data.forEach(t => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${escapeHtml(t.subject)}</td>
-          <td><span class="status ${escapeAttr(t.status)}">${escapeHtml(t.status)}</span></td>
-          <td>${escapeHtml(t.priority ?? '')}</td>
-          <td>${escapeHtml(t.created_at)}</td>
-          <td><a href="ticket_view.html?id=${encodeURIComponent(t.id)}" class="view-link">View</a></td>
-        `;
-        tbody.appendChild(tr);
-
-        // add click handler to show details in right panel (optional)
-        tr.addEventListener('click', () => {
-          const panel = document.getElementById('userRightPanel');
-          panel.innerHTML = `
-            <h2>Ticket Details</h2>
-            <p><strong>Subject:</strong> ${escapeHtml(t.subject)}</p>
-            <p><strong>Status:</strong> ${escapeHtml(t.status)}</p>
-            <p><strong>Priority:</strong> ${escapeHtml(t.priority ?? '')}</p>
-            <p><strong>Created:</strong> ${escapeHtml(t.created_at)}</p>
-            <p style="margin-top:15px;">
-              <a href="ticket_view.html?id=${encodeURIComponent(t.id)}" class="view-link">Open Full Ticket</a>
-            </p>
-          `;
-        });
-      });
-    } catch (err) {
-      console.error(err);
+    if (!data.success) {
+      tbody.innerHTML = `<tr><td colspan="4">${data.message || "Error loading tickets."}</td></tr>`;
+      return;
     }
-  }
 
-  document.getElementById('refreshUserTickets')?.addEventListener('click', loadUserTickets);
-  window.addEventListener('DOMContentLoaded', loadUserTickets);
+    const tickets = data.tickets || [];
+    if (tickets.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4">No tickets found.</td></tr>`;
+      return;
+    }
 
-  // small helpers to avoid XSS when inserting into DOM
-  function escapeHtml(str) {
-    if (!str && str !== 0) return '';
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    tickets.forEach(t => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(t.subject)}</td>
+        <td>${escapeHtml(t.status)}</td>
+        <td>${escapeHtml(t.priority ?? "—")}</td>
+        <td>${escapeHtml(t.created_at)}</td>
+      `;
+      tr.addEventListener("click", () => showTicketDetails(t));
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Fetch error:", err);
+    document.querySelector("#userTicketsTable tbody").innerHTML =
+      `<tr><td colspan="4">Network or JSON error.</td></tr>`;
   }
-  function escapeAttr(str) {
-    return escapeHtml(str).replace(/\s+/g, '-').toLowerCase();
-  }
-  </script>
+}
+
+function showTicketDetails(ticket) {
+  const panel = document.getElementById("userRightPanel");
+  panel.innerHTML = `
+    <h2>Ticket #${escapeHtml(ticket.id)}</h2>
+    <p><strong>Subject:</strong> ${escapeHtml(ticket.subject)}</p>
+    <p><strong>Status:</strong> ${escapeHtml(ticket.status)}</p>
+    <p><strong>Priority:</strong> ${escapeHtml(ticket.priority ?? "—")}</p>
+    <p><strong>Created:</strong> ${escapeHtml(ticket.created_at)}</p>
+  `;
+}
+
+function escapeHtml(str) {
+  if (!str && str !== 0) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+document.getElementById("refreshUserTickets").addEventListener("click", loadUserTickets);
+window.addEventListener("DOMContentLoaded", loadUserTickets);
+</script>
 </body>
 </html>

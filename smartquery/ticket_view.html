@@ -3,39 +3,172 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>View Ticket | SmartQuery</title>
+  <title>Ticket Details | SmartQuery Admin</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    body { background-color: #f6f8fb; font-family: 'Poppins', sans-serif; padding: 40px; }
-    .ticket-box { background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 40px; max-width: 700px; margin: 0 auto; }
-    h2 { color: #4b49ac; margin-bottom: 20px; }
-    .ticket-detail p { margin: 10px 0; }
-    .response-box { margin-top: 30px; }
-    textarea { width: 100%; border: 1px solid #ccc; border-radius: 8px; padding: 10px; }
-    button { margin-top: 10px; background: #4b49ac; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
-    button:hover { background: #3733a2; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f8fb;
+      margin: 0;
+      padding: 20px;
+    }
+    .ticket-container {
+      max-width: 700px;
+      background: #fff;
+      margin: 0 auto;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      color: #4b49ac;
+      margin-bottom: 15px;
+    }
+    p {
+      color: #333;
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+    hr {
+      margin: 20px 0;
+    }
+    .responses {
+      background: #f9f9ff;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .response {
+      background: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .response.admin {
+      border-left: 4px solid #4b49ac;
+    }
+    .response.user {
+      border-left: 4px solid #49ac4b;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      resize: none;
+    }
+    button {
+      background: #4b49ac;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #3d3ba3;
+    }
   </style>
 </head>
+
 <body>
-  <div class="ticket-box">
-    <h2>Ticket #00123 - Billing Issue</h2>
-    <div class="ticket-detail">
-      <p><strong>Status:</strong> In Progress</p>
-      <p><strong>Category:</strong> Billing</p>
-      <p><strong>Urgency:</strong> High</p>
-      <p><strong>Message:</strong> I was charged twice for my subscription this month.</p>
-    </div>
-
-    <div class="response-box">
-      <h3>Respond to this Ticket</h3>
-      <form action="backend/respond_ticket.php" method="POST">
-        <textarea name="response" rows="5" placeholder="Write your response..."></textarea>
-        <button type="submit">Send Response</button>
-          
-      </form>
-
-      <a href="dashboard.html"> <button class="dashboard-btn1">Go back to Dashboard</button> </a> 
-    </div>
+  <div class="ticket-container">
+    <h2>Loading ticket...</h2>
+    <div id="ticketDetails"></div>
   </div>
+
+  <script>
+    async function loadTicketDetails() {
+      const params = new URLSearchParams(window.location.search);
+      const ticketId = params.get('id');
+
+      if (!ticketId) {
+        document.getElementById('ticketDetails').innerHTML = '<p>No ticket ID provided.</p>';
+        return;
+      }
+
+      try {
+        const res = await fetch(`backend/get_ticket_details.php?id=${ticketId}`);
+        const data = await res.json();
+
+        if (!data.success) {
+          document.getElementById('ticketDetails').innerHTML = `<p>${data.message}</p>`;
+          return;
+        }
+
+        const t = data.ticket;
+        const responses = data.responses || [];
+
+        let responseHTML = '';
+        if (responses.length > 0) {
+          responseHTML = '<div class="responses"><h3>Conversation</h3>';
+          responses.forEach(r => {
+            responseHTML += `
+              <div class="response ${r.responder}">
+                <strong>${r.responder === 'admin' ? 'Admin' : t.username}</strong> 
+                <small>(${r.created_at})</small><br>
+                ${r.message}
+              </div>
+            `;
+          });
+          responseHTML += '</div>';
+        } else {
+          responseHTML = '<p><em>No responses yet.</em></p>';
+        }
+
+        document.querySelector('.ticket-container h2').textContent = `Ticket #${t.id}`;
+        document.getElementById('ticketDetails').innerHTML = `
+          <p><strong>Customer:</strong> ${t.username}</p>
+          <p><strong>Subject:</strong> ${t.subject}</p>
+          <p><strong>Status:</strong> ${t.status}</p>
+          <p><strong>Priority:</strong> ${t.priority}</p>
+          <p><strong>Created:</strong> ${t.created_at}</p>
+          <hr>
+          ${responseHTML}
+          <h3>Send Response</h3>
+          <textarea id="adminResponse" placeholder="Type your response..."></textarea>
+          <button id="sendResponseBtn">Send Response</button>
+        `;
+
+        document.getElementById('sendResponseBtn').addEventListener('click', async () => {
+          const message = document.getElementById('adminResponse').value.trim();
+          if (!message) {
+            alert('Please enter a response.');
+            return;
+          }
+
+          try {
+            const sendRes = await fetch('backend/send_response.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ticket_id: ticketId, message })
+            });
+
+            const result = await sendRes.json();
+            if (result.success) {
+              alert('Response sent successfully. Ticket marked as resolved.');
+              window.location.reload();
+            } else {
+              alert(result.message || 'Failed to send response.');
+            }
+          } catch (err) {
+            console.error(err);
+            alert('Error connecting to the server.');
+          }
+        });
+
+      } catch (err) {
+        console.error('Fetch error:', err);
+        document.getElementById('ticketDetails').innerHTML = '<p>Error loading ticket details.</p>';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadTicketDetails);
+  </script>
 </body>
 </html>

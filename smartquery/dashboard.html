@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartQuery Admin Dashboard</title>
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartQuery Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>  
   <div class="dashboard">
-
     <!-- SIDEBAR -->
     <div class="sidebar">
       <div class="menu-top">
@@ -19,7 +18,6 @@
           <li class="active"><a href="dashboard.html"><img src="images/adminicon.png" class="icon" /> Admin Dashboard</a></li>
         </ul>
       </div>
-
       <ul class="logout">
         <li><a href="logout.html"><img src="images/logouticon.png" class="icon" /> Logout</a></li>
       </ul>
@@ -32,42 +30,16 @@
         <button id="refreshBtn" class="refresh-btn">Refresh</button>
       </header>
 
-      <!-- Cards (top section) -->
       <div class="cards">
-        <div class="card">
-          <h3>Total Tickets</h3>
-          <p id="totalCount" class="number">0</p>
-        </div>
-
-        <div class="card">
-          <h3>Open Tickets</h3>
-          <p id="openCount" class="number">0</p>
-        </div>
-
-        <div class="card">
-          <h3>In Progress</h3>
-          <p id="inProgressCount" class="number">0</p>
-        </div>
-
-        <div class="card">
-          <h3>Resolved</h3>
-          <p id="resolvedCount" class="number">0</p>
-        </div>
+        <div class="card"><h3>Total Tickets</h3><p id="totalCount" class="number">0</p></div>
+        <div class="card"><h3>Open Tickets</h3><p id="openCount" class="number">0</p></div>
+        <div class="card"><h3>In Progress</h3><p id="inProgressCount" class="number">0</p></div>
+        <div class="card"><h3>Resolved</h3><p id="resolvedCount" class="number">0</p></div>
       </div>
 
-      <!-- Tickets + Right Panel -->
       <div class="bottom-section">
-        <!-- Ticket Table -->
         <div class="tickets">
           <h2>Support Tickets</h2>
-
-          <div class="filter-buttons" id="filterButtons">
-            <button data-status="all" class="active">All (<span class="count">0</span>)</button>
-            <button data-status="open">Open (<span class="count">0</span>)</button>
-            <button data-status="in-progress">Progress (<span class="count">0</span>)</button>
-            <button data-status="resolved">Resolved (<span class="count">0</span>)</button>
-          </div>
-
           <table id="ticketsTable">
             <thead>
               <tr>
@@ -80,152 +52,63 @@
                 <th>Action</th>
               </tr>
             </thead>
-
-            <tbody>
-              <!-- Filled dynamically -->
-            </tbody>
+            <tbody id="adminTicketTableBody"></tbody>
           </table>
-        </div>
-
-        <!-- Right panel -->
-        <div class="right-panel" id="rightPanel">
-          <h2>No Ticket Selected</h2>
-          <p>Click a ticket from the table to view details here.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="script.js"></script>
+<script>
+async function loadAllTickets() {
+  try {
+    const response = await fetch('backend/get_all_tickets.php');
+    const data = await response.json();
 
-  <script>
-  // load all tickets for admin, update counts, and handle row clicks
-  async function loadAllTickets() {
-    try {
-      const res = await fetch("backend/get_all_tickets.php", { credentials: 'same-origin' });
-      const data = await res.json();
+    const tableBody = document.getElementById('adminTicketTableBody');
+    tableBody.innerHTML = '';
 
-      // handle unauthorized
-      if (data && data.success === false) {
-        document.querySelector('#ticketsTable tbody').innerHTML =
-          '<tr><td colspan="7">Unauthorized — admin only.</td></tr>';
-        return;
-      }
-
-      const tbody = document.querySelector('#ticketsTable tbody');
-      tbody.innerHTML = '';
-
-      if (!Array.isArray(data) || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7">No tickets found.</td></tr>';
-        updateCounts([]);
-        return;
-      }
-
-      data.forEach(t => {
-        const tr = document.createElement('tr');
-        tr.dataset.status = t.status || 'open';
-
-        tr.innerHTML = `
-          <td>${escapeHtml(t.username || 'N/A')}</td>
-          <td>${escapeHtml(t.subject)}</td>
-          <td><span class="status ${escapeAttr(t.status)}">${escapeHtml(t.status)}</span></td>
-          <td>${escapeHtml(t.priority ?? '')}</td>
-          <td>${escapeHtml(t.created_at)}</td>
-          <td>${escapeHtml(t.id)}</td>
-          <td><a href="ticket_view.html?id=${encodeURIComponent(t.id)}" class="view-link">View</a></td>
-        `;
-        tbody.appendChild(tr);
-
-        tr.addEventListener('click', () => {
-          showTicketDetailsAdmin(t);
-        });
-      });
-
-      updateCounts(data);
-      updateFilterButtonCounts(data);
-    } catch (err) {
-      console.error(err);
+    if (!data.success) {
+      tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">${data.message}</td></tr>`;
+      return;
     }
-  }
 
-  function updateCounts(tickets) {
-    const total = tickets.length;
-    let open = 0, inProgress = 0, resolved = 0;
-    tickets.forEach(t => {
-      if (!t.status) return;
-      if (t.status === 'open') open++;
-      if (t.status === 'in-progress') inProgress++;
-      if (t.status === 'resolved') resolved++;
+    if (data.tickets.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No tickets found.</td></tr>`;
+      return;
+    }
+
+    data.tickets.forEach(ticket => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${ticket.username}</td>
+        <td>${ticket.subject}</td>
+        <td>${ticket.status}</td>
+        <td>${ticket.priority}</td>
+        <td>${ticket.created_at}</td>
+        <td>${ticket.id}</td>
+        <td><button class="view-btn" data-id="${ticket.id}">View</button></td>
+      `;
+      tableBody.appendChild(row);
     });
 
-    document.getElementById('totalCount').textContent = total;
-    document.getElementById('openCount').textContent = open;
-    document.getElementById('inProgressCount').textContent = inProgress;
-    document.getElementById('resolvedCount').textContent = resolved;
-  }
-
-  function updateFilterButtonCounts(tickets) {
-    const counts = { all: tickets.length, open:0, 'in-progress':0, resolved:0 };
-    tickets.forEach(t => {
-      if (t.status === 'open') counts.open++;
-      if (t.status === 'in-progress') counts['in-progress']++;
-      if (t.status === 'resolved') counts.resolved++;
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ticketId = btn.dataset.id;
+        // Open the ticket view page in a popup window
+        window.open(`ticket_view.html?id=${ticketId}`, '_blank', 'width=700,height=700');
+      });
     });
 
-    const buttons = document.querySelectorAll('#filterButtons button');
-    buttons.forEach(btn => {
-      const status = btn.dataset.status;
-      const span = btn.querySelector('.count');
-      if (span) span.textContent = counts[status] ?? 0;
-    });
+  } catch (err) {
+    console.error('Fetch error:', err);
+    document.getElementById('adminTicketTableBody').innerHTML =
+      `<tr><td colspan="7" style="text-align:center;">Error loading tickets</td></tr>`;
   }
+}
 
-  function showTicketDetailsAdmin(ticket) {
-    const rp = document.getElementById('rightPanel');
-    rp.innerHTML = `
-      <h2>Ticket #${escapeHtml(ticket.id)}</h2>
-      <p><strong>User:</strong> ${escapeHtml(ticket.username)}</p>
-      <p><strong>Subject:</strong> ${escapeHtml(ticket.subject)}</p>
-      <p><strong>Status:</strong> ${escapeHtml(ticket.status)}</p>
-      <p><strong>Priority:</strong> ${escapeHtml(ticket.priority ?? '')}</p>
-      <p><strong>Created:</strong> ${escapeHtml(ticket.created_at)}</p>
-      <p style="margin-top:15px;">
-        <a href="ticket_view.html?id=${encodeURIComponent(ticket.id)}" class="view-link">Open Full Ticket</a>
-      </p>
-    `;
-  }
-
-  // filter UI (client-side)
-  document.getElementById('filterButtons')?.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const filter = btn.dataset.status;
-    document.querySelectorAll('#filterButtons button').forEach(b => b.classList.toggle('active', b === btn));
-    document.querySelectorAll('#ticketsTable tbody tr').forEach(tr => {
-      if (filter === 'all') tr.style.display = '';
-      else {
-        const s = tr.dataset.status || '';
-        tr.style.display = (s === filter) ? '' : 'none';
-      }
-    });
-  });
-
-  document.getElementById('refreshBtn')?.addEventListener('click', loadAllTickets);
-  window.addEventListener('DOMContentLoaded', loadAllTickets);
-
-  // small helpers to avoid XSS when inserting into DOM
-  function escapeHtml(str) {
-    if (!str && str !== 0) return '';
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-  function escapeAttr(str) {
-    return escapeHtml(str).replace(/\s+/g, '-').toLowerCase();
-  }
-  </script>
+document.addEventListener('DOMContentLoaded', loadAllTickets);
+document.getElementById('refreshBtn').addEventListener('click', loadAllTickets);
+</script>
 </body>
 </html>

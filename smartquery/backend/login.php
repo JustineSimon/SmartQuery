@@ -33,10 +33,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // ✅ Redirect based on user role
     if ($role === 'admin') {
-      header("Location: /smartquery/dashboard.php");
-    } else {
-      header("Location: /smartquery/user_home.html");
-    }
+  header("Location: /smartquery/dashboard.php");
+} elseif ($role === 'user') {
+  header("Location: /smartquery/user_home.html");
+} else {
+  // Default fallback
+  header("Location: /smartquery/login.html?error=invalid_role");
+}
+
     exit;
 
   } else {

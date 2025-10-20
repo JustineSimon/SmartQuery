@@ -1,159 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Submit Inquiry | SmartQuery</title>
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    body { 
-      background-color: #f6f8fb; 
-      font-family: 'Poppins', sans-serif; 
-      margin: 0; 
-      padding: 40px; 
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body {
+      background: linear-gradient(135deg, #eef1fb 0%, #ffffff 100%);
+      min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 30px;
     }
-
-    .form-container { 
-      background: white; 
-      padding: 40px; 
-      border-radius: 16px; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-      max-width: 600px; 
-      margin: 0 auto; 
-      position: relative;
+    .form-container {
+      background: #fff; padding: 45px 50px; border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      max-width: 600px; width: 100%; position: relative; animation: fadeIn 0.8s ease-in-out;
     }
-
-    h2 { 
-      color: #4b49ac; 
-      text-align: center; 
-      margin-bottom: 25px; 
+    h2 { color: #1a237e; text-align: center; font-size: 1.8rem; margin-bottom: 25px; }
+    label { display: block; font-weight: 500; margin-bottom: 6px; color: #333; }
+    input, textarea, select {
+      width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 10px;
+      font-size: 0.95rem; margin-bottom: 20px; outline: none; transition: 0.3s;
     }
-
-    label { 
-      display: block; 
-      margin: 10px 0 5px; 
-      font-weight: 500; 
+    input:focus, textarea:focus, select:focus {
+      border-color: #3f51b5; box-shadow: 0 0 6px rgba(63, 81, 181, 0.25);
     }
-
-    input, textarea, select { 
-      width: 100%; 
-      padding: 10px; 
-      border: 1px solid #ccc; 
-      border-radius: 8px; 
-      margin-bottom: 15px; 
+    textarea { resize: none; }
+    button {
+      background: #3f51b5; color: white; border: none; padding: 14px; width: 100%;
+      border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 1rem;
+      box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3); transition: 0.3s;
     }
-
-    button { 
-      background: #4b49ac; 
-      color: white; 
-      border: none; 
-      padding: 12px; 
-      width: 100%; 
-      border-radius: 8px; 
-      cursor: pointer; 
-      transition: 0.3s; 
+    button:hover { background: #303f9f; transform: translateY(-2px); }
+    .upload-wrapper {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 25px;
     }
-
-    button:hover { 
-      background: #3733a2; 
-    }
-
     .upload-btn {
-      display: inline-block;
-      background-color: #4b49ac;
-      color: white;
-      padding: 6px 17px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: background 0.3s;
+      display: inline-block; background-color: #3f51b5; color: white;
+      padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 500;
+      transition: 0.3s; font-size: 0.9rem;
     }
-
-    .upload-btn:hover {
-      background-color: #3733a2;
+    .upload-btn:hover { background-color: #303f9f; }
+    .file-name {
+      font-size: 0.9rem; color: #555; max-width: 250px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-
-    /* ✅ Go Back Button */
     .back-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background-color: #4b49ac;
-      color: white;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 500;
+      position: absolute; top: 20px; left: 20px;
+      background: #3f51b5; color: white; border: none;
+      padding: 8px 18px; border-radius: 8px; cursor: pointer;
+      font-weight: 500; text-decoration: none; font-size: 14px;
       transition: background 0.3s;
-      text-decoration: none;
-      font-size: 14px;
     }
-
-    .back-btn:hover {
-      background-color: #3733a2;
-    }
-
+    .back-btn:hover { background-color: #303f9f; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px);} to { opacity: 1; transform: translateY(0);} }
+    @media (max-width: 500px) { .form-container { padding: 35px 25px; } }
   </style>
 </head>
+
 <body>
   <div class="form-container">
-
-    <!-- ✅ Back to Home Button -->
-    <a href="user_home.html" class="back-btn">← Go Back to Home</a>
-
+    <a href="user_home.html" class="back-btn">← Go Back</a>
     <h2>Submit Inquiry</h2>
-  
+
     <form id="inquiryForm" method="POST" enctype="multipart/form-data">
       <label for="subject">Subject</label>
-      <input type="text" id="subject" name="subject" required>
+      <input type="text" id="subject" name="subject" placeholder="Enter subject" required />
 
       <label for="message">Message</label>
-      <!-- changed name to "description" to match backend/add_ticket.php -->
-      <textarea id="message" name="message" rows="6" required></textarea>
+      <textarea id="message" name="message" rows="6" placeholder="Type your inquiry here..." required></textarea>
 
-      <label for="attachment" class="upload-btn">Upload Attachment</label>
-      <input type="file" id="attachment" name="attachment" hidden>
+      <div class="upload-wrapper">
+        <label for="attachment" class="upload-btn">Upload File</label>
+        <span id="file-name" class="file-name">No file chosen</span>
+        <input type="file" id="attachment" name="attachment" hidden />
+      </div>
 
-      <button type="submit">Submit Inquiry</button>
+      <button type="submit">Submit</button>
     </form>
   </div>
 
-  <!-- SweetAlert for modern confirmation popup -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
   <script>
-  document.getElementById("inquiryForm").addEventListener("submit", async function(event) {
-    event.preventDefault(); // keep SPA feel
+    const fileInput = document.getElementById("attachment");
+    const fileName = document.getElementById("file-name");
+    fileInput.addEventListener("change", () => {
+      fileName.textContent = fileInput.files.length > 0 ? fileInput.files[0].name : "No file chosen";
+    });
 
-    const form = event.target;
-    const formData = new FormData(form);
+    document.getElementById('inquiryForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-    try {
-      const res = await fetch("../backend/submit_ticket.php", {
-  method: "POST",
+  const formData = new FormData(e.target);
+
+  try {
+    const response = await fetch('backend/submit_ticket.php', {
+  method: 'POST',
   body: formData
 });
 
-      const data = await res.json();
 
-      if (data.success) {
-        await Swal.fire({
-          icon: 'success',
-          title: 'Message Sent!',
-          text: data.message,
-          confirmButtonText: 'Go to My Tickets',
-          confirmButtonColor: '#4b49ac'
-        });
-        window.location.href = "my_tickets.html";
-      } else {
-        Swal.fire('Error', data.message || 'Submission failed', 'error');
-      }
-    } catch (err) {
-      console.error(err);
-      Swal.fire('Error', 'Network error', 'error');
+    const data = await response.json();
+
+    if (data.success) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Inquiry Submitted!',
+        text: data.message,
+        confirmButtonText: 'View My Tickets',
+        confirmButtonColor: '#3f51b5'
+      });
+      window.location.href = "my_tickets.html";
+    } else {
+      Swal.fire('Error', data.message || 'Failed to send inquiry', 'error');
     }
-  });
+  } catch (err) {
+    console.error(err);
+    Swal.fire('Error', 'Network error. Please check backend connection.', 'error');
+  }
+});
+
   </script>
 </body>
 </html>

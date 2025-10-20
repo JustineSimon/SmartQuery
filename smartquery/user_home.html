@@ -5,6 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartQuery — User Home</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    .main-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .center-box {
+      text-align: center;
+      background: #fff;
+      padding: 40px 50px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 500px;
+    }
+
+    .dashboard-btn {
+      background-color: #4b49ac;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+      display: inline-block;
+    }
+
+    .dashboard-btn:hover {
+      background-color: #3e3c8f;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .button-group a {
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard">
@@ -14,30 +64,32 @@
       <div class="menu-top">
         <h2>SmartQuery</h2>
         <ul>
-          <li class="active"><a href="home.html"><img src="images/homeicon.png" class="icon" /> Home</a></li>
-          <li><a href="my_tickets.html"><img src="images/ticketicon.png" class="icon" /> My Tickets</a></li>
-          <li><a href="submit_inquiry.html"><img src="images/submiticon.png" class="icon" /> Submit Inquiry</a></li>
+          <li class="active"><a href="user_home.html"><i class="fas fa-home"></i> Home</a></li>
+          <li><a href="my_tickets.html"><i class="fas fa-ticket-alt"></i> My Tickets</a></li>
+          <li><a href="submit_inquiry.html"><i class="fas fa-paper-plane"></i> Submit Inquiry</a></li>
         </ul>
       </div>
 
       <ul class="logout">
-        <li><a href="logout.html"><img src="images/logouticon.png" class="icon" /> Logout</a></li>
+        <li><a href="logout.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
     </div>
 
     <!-- MAIN CONTENT (User Home) -->
     <div class="main-content">
       <div class="center-box">
-        <h2>Welcome to SmartQuery</h2>
-        <p style="color:#555; margin-top:8px;">Submit new inquiries or view your existing tickets.</p>
+        <h2>Welcome back!</h2>
+        <p style="color:#555; margin-top:8px;">
+          Here you can manage your inquiries, track ticket updates, and get quick support when you need it.
+        </p>
 
-        <a href="my_tickets.html"> <button class="dashboard-btn">Go to My Tickets</button> </a>
-
-        <div style="margin-top:18px; font-size:0.95rem; color:#666;">
-          <p><strong>Need assistance?</strong> You can submit a new inquiry anytime.</p>
-          <p style="margin:6px 0;">
-            <a href="submit_inquiry.html" style="color:#4b49ac; text-decoration:none;">Submit Inquiry</a>
-          </p>
+        <div class="button-group">
+          <a href="my_tickets.html">
+            <button class="dashboard-btn">Go to My Tickets</button>
+          </a>
+          <a href="submit_inquiry.html">
+            <button class="dashboard-btn">Submit Inquiry</button>
+          </a>
         </div>
       </div>
     </div>
