@@ -3,172 +3,180 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ticket Details | SmartQuery Admin</title>
+  <title>Ticket View | SmartQuery</title>
   <link rel="stylesheet" href="style.css">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f6f8fb;
+      font-family: 'Poppins', sans-serif;
+      background: #f5f6fa;
       margin: 0;
-      padding: 20px;
+      padding: 0;
     }
-    .ticket-container {
-      max-width: 700px;
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
       background: #fff;
-      margin: 0 auto;
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      padding: 25px 30px;
     }
-    h2 {
-      color: #4b49ac;
+    h1 {
+      color: #3f51b5;
+      margin-bottom: 10px;
+    }
+    .meta {
+      font-size: 0.9rem;
+      color: #666;
       margin-bottom: 15px;
     }
-    p {
-      color: #333;
-      margin: 8px 0;
-      line-height: 1.5;
+    .status {
+      font-weight: 600;
+      color: #3f51b5;
+      text-transform: capitalize;
     }
-    hr {
-      margin: 20px 0;
-    }
-    .responses {
-      background: #f9f9ff;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 20px;
-    }
-    .response {
-      background: #fff;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    .response.admin {
-      border-left: 4px solid #4b49ac;
-    }
-    .response.user {
-      border-left: 4px solid #49ac4b;
+    .response-box {
+      margin-top: 25px;
     }
     textarea {
       width: 100%;
       height: 120px;
+      padding: 10px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      padding: 10px;
-      font-size: 1rem;
-      margin-bottom: 10px;
       resize: none;
+      font-size: 0.95rem;
+      outline: none;
     }
     button {
-      background: #4b49ac;
-      color: #fff;
+      background-color: #3f51b5;
+      color: white;
       border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
+      border-radius: 8px;
+      padding: 10px 20px;
+      margin-top: 10px;
       cursor: pointer;
+      font-weight: 600;
       transition: 0.3s;
     }
     button:hover {
-      background: #3d3ba3;
+      background-color: #303f9f;
+    }
+    .responses {
+      margin-top: 20px;
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+    .response {
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin-bottom: 10px;
+    }
+    .response strong {
+      color: #3f51b5;
+    }
+    .resolved-message {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
+      text-align: center;
+      font-weight: 600;
     }
   </style>
 </head>
-
 <body>
-  <div class="ticket-container">
-    <h2>Loading ticket...</h2>
-    <div id="ticketDetails"></div>
+  <div class="container">
+    <h1 id="ticketSubject">Loading...</h1>
+    <div class="meta">
+      <span id="ticketUser"></span> • 
+      <span class="status" id="ticketStatus"></span> • 
+      <span id="ticketCreated"></span>
+    </div>
+    <p id="ticketMessage"></p>
+
+    <div class="responses" id="responsesContainer"></div>
+
+    <div id="resolvedNotice" class="resolved-message" style="display:none;">
+      ✅ This ticket has been resolved. No further replies allowed.
+    </div>
+
+    <div class="response-box" id="responseBox">
+      <h3>Admin Response</h3>
+      <textarea id="responseMessage" placeholder="Type your resolution message..."></textarea>
+      <button id="sendResponseBtn">Send Response</button>
+    </div>
   </div>
 
   <script>
+    const params = new URLSearchParams(window.location.search);
+    const ticketId = params.get('id');
+
     async function loadTicketDetails() {
-      const params = new URLSearchParams(window.location.search);
-      const ticketId = params.get('id');
-
-      if (!ticketId) {
-        document.getElementById('ticketDetails').innerHTML = '<p>No ticket ID provided.</p>';
-        return;
-      }
-
       try {
-        const res = await fetch(`backend/get_ticket_details.php?id=${ticketId}`);
-        const data = await res.json();
+        const response = await fetch(`backend/get_ticket_details.php?id=${ticketId}`);
+        const data = await response.json();
 
         if (!data.success) {
-          document.getElementById('ticketDetails').innerHTML = `<p>${data.message}</p>`;
+          document.body.innerHTML = `<p style="text-align:center;color:red;">${data.message}</p>`;
           return;
         }
 
-        const t = data.ticket;
-        const responses = data.responses || [];
+        const ticket = data.ticket;
+        document.getElementById('ticketSubject').textContent = ticket.subject;
+        document.getElementById('ticketUser').textContent = `Customer: ${ticket.username}`;
+        document.getElementById('ticketStatus').textContent = ticket.status;
+        document.getElementById('ticketCreated').textContent = new Date(ticket.created_at).toLocaleString();
 
-        let responseHTML = '';
-        if (responses.length > 0) {
-          responseHTML = '<div class="responses"><h3>Conversation</h3>';
-          responses.forEach(r => {
-            responseHTML += `
-              <div class="response ${r.responder}">
-                <strong>${r.responder === 'admin' ? 'Admin' : t.username}</strong> 
-                <small>(${r.created_at})</small><br>
-                ${r.message}
-              </div>
-            `;
-          });
-          responseHTML += '</div>';
-        } else {
-          responseHTML = '<p><em>No responses yet.</em></p>';
+        // If resolved, disable response box
+        if (ticket.status.toLowerCase() === 'resolved') {
+          document.getElementById('responseBox').style.display = 'none';
+          document.getElementById('resolvedNotice').style.display = 'block';
         }
 
-        document.querySelector('.ticket-container h2').textContent = `Ticket #${t.id}`;
-        document.getElementById('ticketDetails').innerHTML = `
-          <p><strong>Customer:</strong> ${t.username}</p>
-          <p><strong>Subject:</strong> ${t.subject}</p>
-          <p><strong>Status:</strong> ${t.status}</p>
-          <p><strong>Priority:</strong> ${t.priority}</p>
-          <p><strong>Created:</strong> ${t.created_at}</p>
-          <hr>
-          ${responseHTML}
-          <h3>Send Response</h3>
-          <textarea id="adminResponse" placeholder="Type your response..."></textarea>
-          <button id="sendResponseBtn">Send Response</button>
-        `;
-
-        document.getElementById('sendResponseBtn').addEventListener('click', async () => {
-          const message = document.getElementById('adminResponse').value.trim();
-          if (!message) {
-            alert('Please enter a response.');
-            return;
-          }
-
-          try {
-            const sendRes = await fetch('backend/send_response.php', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ticket_id: ticketId, message })
-            });
-
-            const result = await sendRes.json();
-            if (result.success) {
-              alert('Response sent successfully. Ticket marked as resolved.');
-              window.location.reload();
-            } else {
-              alert(result.message || 'Failed to send response.');
-            }
-          } catch (err) {
-            console.error(err);
-            alert('Error connecting to the server.');
-          }
+        // Load responses
+        const responsesContainer = document.getElementById('responsesContainer');
+        responsesContainer.innerHTML = '<h3>Responses</h3>';
+        data.responses.forEach(r => {
+          const div = document.createElement('div');
+          div.classList.add('response');
+          div.innerHTML = `<strong>${r.responder}</strong><br>${r.message}<br><small>${new Date(r.created_at).toLocaleString()}</small>`;
+          responsesContainer.appendChild(div);
         });
-
       } catch (err) {
-        console.error('Fetch error:', err);
-        document.getElementById('ticketDetails').innerHTML = '<p>Error loading ticket details.</p>';
+        console.error(err);
+        document.body.innerHTML = `<p style="text-align:center;color:red;">Error loading ticket details.</p>`;
       }
     }
 
-    window.addEventListener('DOMContentLoaded', loadTicketDetails);
+    async function sendResponse() {
+      const message = document.getElementById('responseMessage').value.trim();
+      if (message === '') {
+        alert('Please enter a response.');
+        return;
+      }
+
+      const confirmSend = confirm('Are you sure you want to send this resolution? The ticket will be marked as resolved.');
+      if (!confirmSend) return;
+
+      const response = await fetch('backend/send_response.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_id: ticketId, message })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Response sent successfully. Ticket marked as resolved.');
+        window.location.reload();
+      } else {
+        alert('Error: ' + data.message);
+      }
+    }
+
+    document.getElementById('sendResponseBtn').addEventListener('click', sendResponse);
+    loadTicketDetails();
   </script>
 </body>
 </html>

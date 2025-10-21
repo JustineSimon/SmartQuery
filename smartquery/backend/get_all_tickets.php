@@ -15,11 +15,14 @@ $sql = "SELECT
           t.subject, 
           t.status, 
           t.priority, 
+          t.category, 
+          t.urgency, 
           t.created_at, 
           u.username 
         FROM tickets t
         JOIN users u ON t.user_id = u.id
         ORDER BY t.created_at DESC";
+
 
 $result = $conn->query($sql);
 

@@ -44,7 +44,7 @@
             <thead>
               <tr>
                 <th>Customer</th>
-                <th>Subject</th>
+                <th>Category</th>
                 <th>Status</th>
                 <th>Priority</th>
                 <th>Created</th>
@@ -69,22 +69,54 @@ async function loadAllTickets() {
     tableBody.innerHTML = '';
 
     if (!data.success) {
-      tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">${data.message}</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">${data.message}</td></tr>`;
       return;
     }
 
     if (data.tickets.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No tickets found.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">No tickets found.</td></tr>`;
+      document.getElementById('totalCount').textContent = 0;
+      document.getElementById('openCount').textContent = 0;
+      document.getElementById('inProgressCount').textContent = 0;
+      document.getElementById('resolvedCount').textContent = 0;
       return;
     }
 
+    // 🟢 Normalize statuses (works for “Pending”, “Ongoing”, etc.)
+    let open = 0, inProgress = 0, resolved = 0;
+    data.tickets.forEach(t => {
+      const status = (t.status || '').toLowerCase();
+      if (status.includes('open') || status.includes('new') || status.includes('pending')) open++;
+      else if (status.includes('progress') || status.includes('ongoing')) inProgress++;
+      else if (status.includes('resolved') || status.includes('closed') || status.includes('done')) resolved++;
+    });
+
+    // 🟢 Update summary counters
+    document.getElementById('totalCount').textContent = data.tickets.length;
+    document.getElementById('openCount').textContent = open;
+    document.getElementById('inProgressCount').textContent = inProgress;
+    document.getElementById('resolvedCount').textContent = resolved;
+
+    // 🟢 Populate rows (with dropdowns)
     data.tickets.forEach(ticket => {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${ticket.username}</td>
-        <td>${ticket.subject}</td>
+        <td>
+          <select class="category-select" data-id="${ticket.id}">
+            <option value="Refund" ${ticket.category === 'Refund' ? 'selected' : ''}>Refund</option>
+            <option value="Service concern" ${ticket.category === 'Service concern' ? 'selected' : ''}>Service concern</option>
+            <option value="Support" ${ticket.category === 'Support' ? 'selected' : ''}>Support</option>
+          </select>
+        </td>
         <td>${ticket.status}</td>
-        <td>${ticket.priority}</td>
+        <td>
+          <select class="priority-select" data-id="${ticket.id}">
+            <option value="Urgent" ${ticket.priority === 'Urgent' ? 'selected' : ''}>Urgent</option>
+            <option value="Normal" ${ticket.priority === 'Normal' ? 'selected' : ''}>Normal</option>
+            <option value="Not urgent" ${ticket.priority === 'Not urgent' ? 'selected' : ''}>Not urgent</option>
+          </select>
+        </td>
         <td>${ticket.created_at}</td>
         <td>${ticket.id}</td>
         <td><button class="view-btn" data-id="${ticket.id}">View</button></td>
@@ -92,23 +124,55 @@ async function loadAllTickets() {
       tableBody.appendChild(row);
     });
 
+    // 🟢 View button event
     document.querySelectorAll('.view-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const ticketId = btn.dataset.id;
-        // Open the ticket view page in a popup window
         window.open(`ticket_view.html?id=${ticketId}`, '_blank', 'width=700,height=700');
+      });
+    });
+
+    // 🟢 Dropdown change events for updating
+    document.querySelectorAll('.priority-select').forEach(select => {
+      select.addEventListener('change', () => {
+        updateTicketField(select.dataset.id, 'priority', select.value);
+      });
+    });
+
+    document.querySelectorAll('.category-select').forEach(select => {
+      select.addEventListener('change', () => {
+        updateTicketField(select.dataset.id, 'category', select.value);
       });
     });
 
   } catch (err) {
     console.error('Fetch error:', err);
     document.getElementById('adminTicketTableBody').innerHTML =
-      `<tr><td colspan="7" style="text-align:center;">Error loading tickets</td></tr>`;
+      `<tr><td colspan="8" style="text-align:center;">Error loading tickets</td></tr>`;
+  }
+}
+
+// 🟢 Update field helper function
+async function updateTicketField(ticketId, field, value) {
+  try {
+    const response = await fetch('backend/update_ticket_fields.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticket_id: ticketId, field, value })
+    });
+
+    const result = await response.json();
+    if (!result.success) {
+      alert('Failed to update: ' + result.message);
+    }
+  } catch (err) {
+    console.error('Error updating ticket:', err);
   }
 }
 
 document.addEventListener('DOMContentLoaded', loadAllTickets);
 document.getElementById('refreshBtn').addEventListener('click', loadAllTickets);
 </script>
+
 </body>
 </html>
