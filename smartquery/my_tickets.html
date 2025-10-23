@@ -6,6 +6,17 @@
   <title>My Tickets | SmartQuery</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .right-panel {
+      border-left: 1px solid #ccc;
+      padding: 15px;
+      background-color: #f9f9f9;
+      min-height: 250px;
+    }
+    .ticket-detail p { margin: 5px 0; }
+    .resolved-row { opacity: 0.6; }
+    tr { cursor: pointer; }
+  </style>
 </head>
 
 <body>
@@ -43,9 +54,7 @@
               <th>Created</th>
             </tr>
           </thead>
-          <tbody>
-            <!-- Filled dynamically -->
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
 
@@ -56,7 +65,7 @@
     </div>
   </div>
 
-  <script>
+<script>
 async function loadUserTickets() {
   try {
     const res = await fetch("backend/get_user_tickets.php");
@@ -76,15 +85,24 @@ async function loadUserTickets() {
       return;
     }
 
+    // Sort: resolved at bottom
+    tickets.sort((a,b) => {
+      const statusOrder = {'open':1,'in progress':2,'pending':3,'resolved':4,'closed':4,'done':4};
+      const sa = (a.status||'').toLowerCase();
+      const sb = (b.status||'').toLowerCase();
+      return (statusOrder[sa] || 2) - (statusOrder[sb] || 2);
+    });
+
     tickets.forEach(t => {
       const tr = document.createElement("tr");
+      tr.classList.toggle('resolved-row', t.status && t.status.toLowerCase().includes('resolved'));
       tr.innerHTML = `
         <td>${escapeHtml(t.subject)}</td>
         <td>${escapeHtml(t.status)}</td>
         <td>${escapeHtml(t.priority ?? "—")}</td>
         <td>${escapeHtml(t.created_at)}</td>
       `;
-      tr.addEventListener("click", () => showTicketDetails(t));
+      tr.addEventListener("click", () => loadTicketDetails(t.id));
       tbody.appendChild(tr);
     });
   } catch (err) {
@@ -94,15 +112,47 @@ async function loadUserTickets() {
   }
 }
 
-function showTicketDetails(ticket) {
-  const panel = document.getElementById("userRightPanel");
-  panel.innerHTML = `
-    <h2>Ticket #${escapeHtml(ticket.id)}</h2>
-    <p><strong>Subject:</strong> ${escapeHtml(ticket.subject)}</p>
-    <p><strong>Status:</strong> ${escapeHtml(ticket.status)}</p>
-    <p><strong>Priority:</strong> ${escapeHtml(ticket.priority ?? "—")}</p>
-    <p><strong>Created:</strong> ${escapeHtml(ticket.created_at)}</p>
-  `;
+async function loadTicketDetails(ticketId) {
+  try {
+    const res = await fetch(`backend/get_ticket_details.php?id=${ticketId}`);
+    const data = await res.json();
+    const panel = document.getElementById("userRightPanel");
+
+    if (!data.success) {
+      panel.innerHTML = `<p>${data.message || "Error loading ticket details."}</p>`;
+      return;
+    }
+
+    const t = data.ticket;
+    const responses = data.responses || [];
+
+    let responseHtml = "";
+    if (responses.length > 0) {
+      responseHtml = `<p><strong>Admin Responses:</strong></p>`;
+      responses.forEach(r => {
+        responseHtml += `<p><em>${escapeHtml(r.responder)} (${escapeHtml(r.created_at)}):</em> ${escapeHtml(r.message)}</p>`;
+      });
+    } else if (t.status && t.status.toLowerCase().includes('resolved')) {
+      responseHtml = "<p><strong>Admin Responses:</strong> None yet.</p>";
+    }
+
+    panel.innerHTML = `
+      <h2>Ticket #${escapeHtml(t.id)}</h2>
+      <div class="ticket-detail">
+        <p><strong>Subject:</strong> ${escapeHtml(t.subject)}</p>
+        <p><strong>Status:</strong> ${escapeHtml(t.status)}</p>
+        <p><strong>Priority:</strong> ${escapeHtml(t.priority ?? "—")}</p>
+        <p><strong>Created:</strong> ${escapeHtml(t.created_at)}</p>
+        <p><strong>Your Message:</strong></p>
+        <p>${escapeHtml(t.message ?? "No message.")}</p>
+        ${responseHtml}
+      </div>
+    `;
+  } catch (err) {
+    console.error("Fetch error:", err);
+    document.getElementById("userRightPanel").innerHTML =
+      `<p>Network or JSON error.</p>`;
+  }
 }
 
 function escapeHtml(str) {

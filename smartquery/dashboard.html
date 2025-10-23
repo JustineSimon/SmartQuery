@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartQuery Admin Dashboard</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Optional: highlight urgent tickets */
+    .urgent-row { background-color: #ffebee; }
+    .resolved-row { opacity: 0.6; }
+    .hidden-row { display: none; }
+  </style>
 </head>
 
-<body>  
+<body>
   <div class="dashboard">
     <!-- SIDEBAR -->
     <div class="sidebar">
@@ -40,6 +46,15 @@
       <div class="bottom-section">
         <div class="tickets">
           <h2>Support Tickets</h2>
+
+          <div class="ai-controls" style="margin-bottom: 15px;">
+            <button id="aiSortCategories" class="btn btn-primary">AI Sort Categories</button>
+            <button id="aiSortPriorities" class="btn btn-secondary">AI Sort Priorities</button>
+            <label style="margin-left:20px;">
+              <input type="checkbox" id="hideResolvedCheckbox" /> Hide Resolved
+            </label>
+          </div>
+
           <table id="ticketsTable">
             <thead>
               <tr>
@@ -68,13 +83,8 @@ async function loadAllTickets() {
     const tableBody = document.getElementById('adminTicketTableBody');
     tableBody.innerHTML = '';
 
-    if (!data.success) {
-      tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">${data.message}</td></tr>`;
-      return;
-    }
-
-    if (data.tickets.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">No tickets found.</td></tr>`;
+    if (!data.success || !data.tickets.length) {
+      tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">${data.message || 'No tickets found.'}</td></tr>`;
       document.getElementById('totalCount').textContent = 0;
       document.getElementById('openCount').textContent = 0;
       document.getElementById('inProgressCount').textContent = 0;
@@ -82,7 +92,7 @@ async function loadAllTickets() {
       return;
     }
 
-    // 🟢 Normalize statuses (works for “Pending”, “Ongoing”, etc.)
+    // Count statuses
     let open = 0, inProgress = 0, resolved = 0;
     data.tickets.forEach(t => {
       const status = (t.status || '').toLowerCase();
@@ -91,59 +101,70 @@ async function loadAllTickets() {
       else if (status.includes('resolved') || status.includes('closed') || status.includes('done')) resolved++;
     });
 
-    // 🟢 Update summary counters
     document.getElementById('totalCount').textContent = data.tickets.length;
     document.getElementById('openCount').textContent = open;
     document.getElementById('inProgressCount').textContent = inProgress;
     document.getElementById('resolvedCount').textContent = resolved;
 
-    // 🟢 Populate rows (with dropdowns)
+    // Auto-sort tickets: urgent -> normal -> not urgent -> resolved
+    const priorityOrder = { 'urgent': 1, 'normal': 2, 'not urgent': 3 };
+    const statusResolved = ['resolved', 'closed', 'done'];
+
+    data.tickets.sort((a, b) => {
+      const sa = (a.status || '').toLowerCase();
+      const sb = (b.status || '').toLowerCase();
+      const aResolved = statusResolved.includes(sa) ? 1 : 0;
+      const bResolved = statusResolved.includes(sb) ? 1 : 0;
+      if (aResolved !== bResolved) return aResolved - bResolved;
+
+      const pa = (a.priority || 'Normal').toLowerCase();
+      const pb = (b.priority || 'Normal').toLowerCase();
+      return (priorityOrder[pa] || 2) - (priorityOrder[pb] || 2);
+    });
+
+    const hideResolved = document.getElementById('hideResolvedCheckbox')?.checked;
+
     data.tickets.forEach(ticket => {
+      const priorityValue = (ticket.priority && ticket.priority.trim() !== '') ? ticket.priority : 'Normal';
+      const categoryValue = (ticket.category && ticket.category.trim() !== '') ? ticket.category : '';
+
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${ticket.username}</td>
+        <td>${escapeHtml(ticket.username)}</td>
         <td>
           <select class="category-select" data-id="${ticket.id}">
-            <option value="Refund" ${ticket.category === 'Refund' ? 'selected' : ''}>Refund</option>
-            <option value="Service concern" ${ticket.category === 'Service concern' ? 'selected' : ''}>Service concern</option>
-            <option value="Support" ${ticket.category === 'Support' ? 'selected' : ''}>Support</option>
+            <option value="" ${categoryValue === '' ? 'selected' : ''}></option>
+            <option value="Refund" ${categoryValue === 'Refund' ? 'selected' : ''}>Refund</option>
+            <option value="Service concern" ${categoryValue === 'Service concern' ? 'selected' : ''}>Service concern</option>
+            <option value="Support" ${categoryValue === 'Support' ? 'selected' : ''}>Support</option>
           </select>
         </td>
-        <td>${ticket.status}</td>
+        <td>${escapeHtml(ticket.status)}</td>
         <td>
           <select class="priority-select" data-id="${ticket.id}">
-            <option value="Urgent" ${ticket.priority === 'Urgent' ? 'selected' : ''}>Urgent</option>
-            <option value="Normal" ${ticket.priority === 'Normal' ? 'selected' : ''}>Normal</option>
-            <option value="Not urgent" ${ticket.priority === 'Not urgent' ? 'selected' : ''}>Not urgent</option>
+            <option value="Urgent" ${priorityValue === 'Urgent' ? 'selected' : ''}>Urgent</option>
+            <option value="Normal" ${priorityValue === 'Normal' ? 'selected' : ''}>Normal</option>
+            <option value="Not urgent" ${priorityValue === 'Not urgent' ? 'selected' : ''}>Not urgent</option>
           </select>
         </td>
-        <td>${ticket.created_at}</td>
-        <td>${ticket.id}</td>
-        <td><button class="view-btn" data-id="${ticket.id}">View</button></td>
+        <td>${escapeHtml(ticket.created_at)}</td>
+        <td>${escapeHtml(ticket.id)}</td>
+        <td>
+          <button class="view-btn" data-id="${ticket.id}">View</button>
+        </td>
+        <td style="display:none" class="ticket-subject">${escapeHtml(ticket.subject || '')}</td>
+        <td style="display:none" class="ticket-message">${escapeHtml(ticket.message || '')}</td>
       `;
+
+      // Highlight urgent or resolved
+      if (priorityValue.toLowerCase() === 'urgent') row.classList.add('urgent-row');
+      if (statusResolved.includes((ticket.status || '').toLowerCase())) row.classList.add('resolved-row');
+      if (hideResolved && statusResolved.includes((ticket.status || '').toLowerCase())) row.classList.add('hidden-row');
+
       tableBody.appendChild(row);
     });
 
-    // 🟢 View button event
-    document.querySelectorAll('.view-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const ticketId = btn.dataset.id;
-        window.open(`ticket_view.html?id=${ticketId}`, '_blank', 'width=700,height=700');
-      });
-    });
-
-    // 🟢 Dropdown change events for updating
-    document.querySelectorAll('.priority-select').forEach(select => {
-      select.addEventListener('change', () => {
-        updateTicketField(select.dataset.id, 'priority', select.value);
-      });
-    });
-
-    document.querySelectorAll('.category-select').forEach(select => {
-      select.addEventListener('change', () => {
-        updateTicketField(select.dataset.id, 'category', select.value);
-      });
-    });
+    attachTableEvents();
 
   } catch (err) {
     console.error('Fetch error:', err);
@@ -152,7 +173,12 @@ async function loadAllTickets() {
   }
 }
 
-// 🟢 Update field helper function
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
 async function updateTicketField(ticketId, field, value) {
   try {
     const response = await fetch('backend/update_ticket_fields.php', {
@@ -160,18 +186,43 @@ async function updateTicketField(ticketId, field, value) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ticket_id: ticketId, field, value })
     });
-
     const result = await response.json();
-    if (!result.success) {
-      alert('Failed to update: ' + result.message);
-    }
+    if (!result.success) alert('Failed to update: ' + result.message);
   } catch (err) {
     console.error('Error updating ticket:', err);
   }
 }
 
-document.addEventListener('DOMContentLoaded', loadAllTickets);
+function attachTableEvents() {
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ticketId = btn.dataset.id;
+      window.open(`ticket_view.html?id=${ticketId}`, '_blank', 'width=700,height=700');
+    });
+  });
+
+  document.querySelectorAll('.priority-select').forEach(select => {
+    select.addEventListener('change', () => {
+      const val = select.value || 'Normal';
+      updateTicketField(select.dataset.id, 'priority', val);
+      loadAllTickets(); // refresh table sorting
+    });
+  });
+
+  document.querySelectorAll('.category-select').forEach(select => {
+    select.addEventListener('change', () => {
+      updateTicketField(select.dataset.id, 'category', select.value);
+    });
+  });
+}
+
+document.getElementById('hideResolvedCheckbox').addEventListener('change', loadAllTickets);
 document.getElementById('refreshBtn').addEventListener('click', loadAllTickets);
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadAllTickets();
+  setInterval(loadAllTickets, 10000);
+});
 </script>
 
 </body>

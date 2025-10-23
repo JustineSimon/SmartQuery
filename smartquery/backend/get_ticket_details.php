@@ -1,6 +1,5 @@
 <?php
 require_once 'db_connect.php';
-
 header('Content-Type: application/json');
 
 if (!isset($_GET['id'])) {
@@ -10,8 +9,17 @@ if (!isset($_GET['id'])) {
 
 $ticket_id = intval($_GET['id']);
 
+// ✅ Include message and category too if you have them
 $stmt = $conn->prepare("
-    SELECT t.id, t.subject, t.status, t.priority, t.created_at, u.username
+    SELECT 
+        t.id, 
+        t.subject, 
+        t.message, 
+        t.category, 
+        t.status, 
+        t.priority, 
+        t.created_at, 
+        u.username
     FROM tickets t
     JOIN users u ON t.user_id = u.id
     WHERE t.id = ?
@@ -27,7 +35,7 @@ if ($result->num_rows === 0) {
 
 $ticket = $result->fetch_assoc();
 
-// Fetch all responses
+// ✅ Fetch responses
 $res_stmt = $conn->prepare("
     SELECT responder, message, created_at 
     FROM ticket_responses 
@@ -43,4 +51,10 @@ while ($row = $res_result->fetch_assoc()) {
     $responses[] = $row;
 }
 
-echo json_encode(['success' => true, 'ticket' => $ticket, 'responses' => $responses]);
+echo json_encode([
+    'success' => true,
+    'ticket' => $ticket,
+    'responses' => $responses
+]);
+?>
+    

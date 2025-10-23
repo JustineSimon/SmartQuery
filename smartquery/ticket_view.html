@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ticket View | SmartQuery</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -34,9 +34,29 @@
       color: #3f51b5;
       text-transform: capitalize;
     }
-    .response-box {
-      margin-top: 25px;
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-left: 6px;
+      color: white;
     }
+    .badge-category { background-color: #0288d1; }
+    .badge-priority-normal { background-color: #9e9e9e; }
+    .badge-priority-urgent { background-color: #e53935; }
+    .badge-priority-noturgent { background-color: #43a047; }
+    .message-box {
+      background: #fafafa;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
+      font-size: 0.95rem;
+    }
+    .response-box { margin-top: 25px; }
     textarea {
       width: 100%;
       height: 120px;
@@ -58,13 +78,13 @@
       font-weight: 600;
       transition: 0.3s;
     }
-    button:hover {
-      background-color: #303f9f;
-    }
+    button:hover { background-color: #303f9f; }
     .responses {
       margin-top: 20px;
       border-top: 1px solid #eee;
       padding-top: 15px;
+      max-height: 400px;
+      overflow-y: auto;
     }
     .response {
       background: #f9f9f9;
@@ -72,9 +92,7 @@
       padding: 10px 15px;
       margin-bottom: 10px;
     }
-    .response strong {
-      color: #3f51b5;
-    }
+    .response strong { color: #3f51b5; }
     .resolved-message {
       background: #e8f5e9;
       color: #2e7d32;
@@ -92,14 +110,16 @@
     <div class="meta">
       <span id="ticketUser"></span> • 
       <span class="status" id="ticketStatus"></span> • 
-      <span id="ticketCreated"></span>
+      <span id="ticketCreated"></span><br>
+      <span id="ticketCategoryBadge"></span>
+      <span id="ticketPriorityBadge"></span>
     </div>
-    <p id="ticketMessage"></p>
 
+    <div id="ticketMessage" class="message-box">Loading message...</div>
     <div class="responses" id="responsesContainer"></div>
 
     <div id="resolvedNotice" class="resolved-message" style="display:none;">
-      ✅ This ticket has been resolved. No further replies allowed.
+      ✅ This ticket has been resolved.
     </div>
 
     <div class="response-box" id="responseBox">
@@ -115,7 +135,7 @@
 
     async function loadTicketDetails() {
       try {
-        const response = await fetch(`backend/get_ticket_details.php?id=${ticketId}`);
+        const response = await fetch(`backend/get_ticket_details.php?id=${ticketId}&_=${Date.now()}`);
         const data = await response.json();
 
         if (!data.success) {
@@ -124,26 +144,52 @@
         }
 
         const ticket = data.ticket;
-        document.getElementById('ticketSubject').textContent = ticket.subject;
-        document.getElementById('ticketUser').textContent = `Customer: ${ticket.username}`;
-        document.getElementById('ticketStatus').textContent = ticket.status;
-        document.getElementById('ticketCreated').textContent = new Date(ticket.created_at).toLocaleString();
 
-        // If resolved, disable response box
-        if (ticket.status.toLowerCase() === 'resolved') {
+        document.getElementById('ticketSubject').textContent = ticket.subject || '(No subject)';
+        document.getElementById('ticketUser').textContent = `Customer: ${ticket.username || 'Unknown'}`;
+        document.getElementById('ticketStatus').textContent = ticket.status || 'Unknown';
+        document.getElementById('ticketCreated').textContent = new Date(ticket.created_at).toLocaleString();
+        document.getElementById('ticketMessage').textContent = ticket.message || '(No message provided)';
+
+        // Category badge
+        const catBadge = document.getElementById('ticketCategoryBadge');
+        if (ticket.category) {
+          catBadge.textContent = `Category: ${ticket.category}`;
+          catBadge.className = 'badge badge-category';
+        }
+
+        // Priority badge
+        const priBadge = document.getElementById('ticketPriorityBadge');
+        const priority = (ticket.priority || 'normal').toLowerCase();
+        priBadge.textContent = `Priority: ${priority}`;
+        priBadge.className = 'badge';
+        if (priority === 'urgent') priBadge.classList.add('badge-priority-urgent');
+        else if (priority === 'not urgent' || priority === 'not_urgent') priBadge.classList.add('badge-priority-noturgent');
+        else priBadge.classList.add('badge-priority-normal');
+
+        // Disable response if resolved
+        if (ticket.status && ticket.status.toLowerCase() === 'resolved') {
           document.getElementById('responseBox').style.display = 'none';
           document.getElementById('resolvedNotice').style.display = 'block';
         }
 
         // Load responses
         const responsesContainer = document.getElementById('responsesContainer');
-        responsesContainer.innerHTML = '<h3>Responses</h3>';
-        data.responses.forEach(r => {
-          const div = document.createElement('div');
-          div.classList.add('response');
-          div.innerHTML = `<strong>${r.responder}</strong><br>${r.message}<br><small>${new Date(r.created_at).toLocaleString()}</small>`;
-          responsesContainer.appendChild(div);
-        });
+        if (data.responses && data.responses.length > 0) {
+          responsesContainer.innerHTML = '<h3>Responses</h3>';
+          data.responses.forEach(r => {
+            const div = document.createElement('div');
+            div.classList.add('response');
+            div.innerHTML = `<strong>${r.responder}</strong><br>${r.message}<br><small>${new Date(r.created_at).toLocaleString()}</small>`;
+            responsesContainer.appendChild(div);
+          });
+
+          // Scroll to latest response
+          responsesContainer.scrollTop = responsesContainer.scrollHeight;
+        } else {
+          responsesContainer.innerHTML = '<p style="color:#777;">No responses yet.</p>';
+        }
+
       } catch (err) {
         console.error(err);
         document.body.innerHTML = `<p style="text-align:center;color:red;">Error loading ticket details.</p>`;
@@ -165,18 +211,25 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticket_id: ticketId, message })
       });
+
       const data = await response.json();
 
       if (data.success) {
         alert('Response sent successfully. Ticket marked as resolved.');
-        window.location.reload();
+        document.getElementById('responseMessage').value = '';
+        loadTicketDetails();
       } else {
         alert('Error: ' + data.message);
       }
     }
 
     document.getElementById('sendResponseBtn').addEventListener('click', sendResponse);
+
+    // Initial load
     loadTicketDetails();
+
+    // Auto-refresh every 10 seconds
+    setInterval(loadTicketDetails, 10000);
   </script>
 </body>
 </html>
