@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ticket View | SmartQuery</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(18, 27, 41, 0.6);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transform: scale(0.98);
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+      width: 80%;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .modal-close:hover {
+      color: #000;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Status badge/line colors */
+    .status-line {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .status-open {
+      background-color: #ff9800; /* Orange for open */
+    }
+
+    .status-progress {
+      background-color: #2196f3; /* Blue for in progress */
+    }
+
+    .status-resolved {
+      background-color: #4caf50; /* Green for resolved */
+    }
+
+    .attachment-section {
+      margin-top: 15px;
+    }
+
+    .attachment-link {
+      display: inline-block;
+      padding: 8px 12px;
+      background: #f0f0f0;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .attachment-link:hover {
+      background: #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+  <!-- In-page Ticket Modal -->
+  <div id="ticketModalOverlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <button id="closeTicketModal" class="modal-close" aria-label="Close">&times;</button>
+
+      <div class="modal-inner">
+        <h2 id="modalTicketSubject">Loading…</h2>
+
+        <div class="modal-meta">
+          <div><strong>Customer:</strong> <span id="modalTicketUser">N/A</span></div>
+          <div><strong>Status:</strong> <span id="modalTicketStatus">N/A</span></div>
+          <div><strong>Priority:</strong> <span id="modalTicketPriority">N/A</span></div>
+          <div><strong>Created:</strong> <span id="modalTicketCreated">N/A</span></div>
+          <div><strong>Ticket ID:</strong> <span id="modalTicketId">N/A</span></div>
+        </div>
+
+        <hr>
+
+        <div id="modalTicketMessage" class="modal-message">Loading message...</div>
+
+        <div id="attachmentSection" class="attachment-section" style="display: none;">
+          <h4>Attachments</h4>
+          <a id="attachmentLink" class="attachment-link" href="#" target="_blank">Download Attachment</a>
+        </div>
+
+        <div id="modalResponses" style="margin-top:18px;"></div>
+
+        <div id="modalResolvedNotice" style="display:none;margin-top:12px;color:green;font-weight:600;">
+          ✅ This ticket has been resolved.
+        </div>
+
+        <div id="modalResponseBox" style="margin-top:18px;">
+          <h4 style="margin-bottom:8px;">Respond to this Ticket</h4>
+          <textarea id="modalResponseTextarea" placeholder="Write your response..." style="width:100%;min-height:110px;padding:12px;border-radius:8px;border:1px solid #e6e6e6;"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+            <button id="modalSendResponse" class="btn btn-primary" style="background:#d88f2f;border:none;border-radius:24px;padding:10px 20px;color:#fff;">Send Response</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const ticketId = params.get('id');
+
+    // ===============================
+    // 1️⃣ LOAD TICKET DETAILS
+    // ===============================
+    async function loadTicketDetails() {
+      try {
+        const response = await fetch(`backend/get_ticket_details.php?id=${ticketId}&_=${Date.now()}`);
+        const data = await response.json();
+
+        if (!data.success) {
+          document.querySelector('.modal-inner').innerHTML = `<p style="text-align:center;color:red;">${data.message}</p>`;
+          return;
+        }
+
+        const ticket = data.ticket;
+
+        // Update ticket details
+        document.getElementById('modalTicketSubject').textContent = ticket.subject || '(No subject)';
+        document.getElementById('modalTicketUser').textContent = ticket.username || 'Unknown';
+        document.getElementById('modalTicketStatus').innerHTML = `
+          <span class="status-line ${getStatusClass(ticket.status)}">${ticket.status || 'Unknown'}</span>`;
+        document.getElementById('modalTicketPriority').textContent = ticket.priority || 'Normal';
+        document.getElementById('modalTicketCreated').textContent = new Date(ticket.created_at).toLocaleString();
+        document.getElementById('modalTicketId').textContent = ticket.id || ticketId;
+        document.getElementById('modalTicketMessage').textContent = ticket.message || '(No message provided)';
+
+        // Show attachment if present
+        if (ticket.attachment) {
+          document.getElementById('attachmentSection').style.display = 'block';
+          const link = document.getElementById('attachmentLink');
+          link.href = ticket.attachment; // Assuming full path or relative URL
+          link.textContent = ticket.attachment.split('/').pop(); // Show filename
+        } else {
+          document.getElementById('attachmentSection').style.display = 'none';
+        }
+
+        // Resolved notice & response visibility
+        if (ticket.status && ticket.status.toLowerCase() === 'resolved') {
+          document.getElementById('modalResolvedNotice').style.display = 'block';
+          document.getElementById('modalResponseBox').style.display = 'none';
+        } else {
+          document.getElementById('modalResolvedNotice').style.display = 'none';
+          document.getElementById('modalResponseBox').style.display = 'block';
+        }
+
+        // Responses
+        const responsesContainer = document.getElementById('modalResponses');
+        if (data.responses && data.responses.length > 0) {
+          responsesContainer.innerHTML = '<h4>Responses</h4>';
+          data.responses.forEach(r => {
+            const div = document.createElement('div');
+            div.classList.add('response');
+            div.innerHTML = `
+              <strong>${r.responder}</strong><br>
+              ${r.message}<br>
+              <small>${new Date(r.created_at).toLocaleString()}</small><hr>`;
+            responsesContainer.appendChild(div);
+          });
+        } else {
+          responsesContainer.innerHTML = '<p style="color:#777;">No responses yet.</p>';
+        }
+
+      } catch (err) {
+        console.error(err);
+        document.querySelector('.modal-inner').innerHTML = `<p style="text-align:center;color:red;">Error loading ticket details.</p>`;
+      }
+    }
+
+    // Helper for status colors
+    function getStatusClass(status) {
+      if (!status) return '';
+      const s = status.toLowerCase();
+      if (s.includes('open')) return 'status-open';
+      if (s.includes('progress')) return 'status-progress';
+      if (s.includes('resolved') || s.includes('closed') || s.includes('done')) return 'status-resolved';
+      return '';
+    }
+
+    // ===============================
+    // 2️⃣ SEND RESPONSE
+    // ===============================
+    async function sendResponse() {
+      const message = document.getElementById('modalResponseTextarea').value.trim();
+      if (message === '') {
+        alert('Please enter a response.');
+        return;
+      }
+
+      const confirmSend = confirm('Are you sure you want to send this resolution? The ticket will be marked as resolved.');
+      if (!confirmSend) return;
+
+      const response = await fetch('backend/send_response.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_id: ticketId, message })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Response sent successfully. Ticket marked as resolved.');
+        document.getElementById('modalResponseTextarea').value = '';
+        loadTicketDetails();
+      } else {
+        alert('Error: ' + data.message);
+      }
+    }
+
+    document.getElementById('modalSendResponse').addEventListener('click', sendResponse);
+
+    // ===============================
+    // 3️⃣ CLOSE MODAL
+    // ===============================
+    document.getElementById('closeTicketModal').addEventListener('click', () => {
+      window.close(); // Close the popup window
+    });
+
+    // ===============================
+    // 4️⃣ LOAD ON PAGE OPEN & SHOW MODAL
+    // ===============================
+    window.addEventListener('load', () => {
+      loadTicketDetails();
+      setTimeout(() => {
+        document.getElementById('ticketModalOverlay').classList.add('active');
+      }, 100); // Small delay to ensure DOM is ready
+    });
+  </script>
+</body>
+</html>

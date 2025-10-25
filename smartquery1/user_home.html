@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartQuery — User Home</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body {
+      background-color: #f6f8fb;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .main-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .center-box {
+      text-align: center;
+      background: #fff;
+      padding: 40px 50px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      max-width: 500px;
+    }
+
+    .center-box h2 {
+      color: #d88f2f;
+      margin-bottom: 10px;
+    }
+
+    .dashboard-btn {
+      background-color: #d88f2f;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 700; /* ✅ Bolded buttons */
+      transition: 0.3s;
+      display: inline-block;
+    }
+
+    .dashboard-btn:hover {
+      background-color: #c27f29;
+      transform: translateY(-2px);
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .button-group a {
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dashboard">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="menu-top">
+        <h2>SmartQuery</h2>
+        <ul>
+          <li class="active"><a href="user_home.html"><i class="fas fa-home"></i> Home</a></li>
+          <li><a href="my_tickets.html"><i class="fas fa-ticket-alt"></i> My Tickets</a></li>
+          <li><a href="submit_inquiry.html"><i class="fas fa-paper-plane"></i> Submit Inquiry</a></li>
+        </ul>
+      </div>
+      <ul class="logout">
+        <li><a href="logout.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+      <div class="center-box">
+        <h2>Welcome back!</h2>
+        <p style="color:#555; margin-top:8px;">
+          Here you can manage your inquiries, track ticket updates, and get quick support when you need it.
+        </p>
+
+        <div class="button-group">
+          <a href="my_tickets.html">
+            <button class="dashboard-btn"><strong>Go to My Tickets</strong></button>
+          </a>
+          <a href="submit_inquiry.html">
+            <button class="dashboard-btn"><strong>Submit Inquiry</strong></button>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
