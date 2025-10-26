@@ -2,4 +2,4 @@
 - [Jira Board Summary](./jira-board.md)
 
 ## 🌏︎ Visit Website
-- https://smartquery.unaux.com/
+- [Click here to see SmartQuery Website](https://smartquery.unaux.com/)
