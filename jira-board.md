@@ -23,11 +23,11 @@ This document records all tasks from our Jira board as of 2025-10-10.
 | Weekly Scrum minutes of the meeting                                                                              | To Do    | nan                     | nan          | nan        |
 | GitHub Link of progress                                                                                          | To Do    | nan                     | nan          | nan        |
 | TO PASS: Minutes of the meeting, GitHub progress                                                                 | To Do    | nan                     | nan          | nan        |
-| Week 10-11 - Activity 8 - Implementation: Sprint Iteration 3                                                     | To Do    | Alliah Oliveros         | 2025/10/14   | 2025/10/28 |
+| Week 10-11 - Activity 8 - Implementation: Sprint Iteration 3                                                     | Done     | Alliah Oliveros         | 2025/10/14   | 2025/10/28 |
 | Weekly Scrum Minutes of the Meeting                                                                              | To Do    | nan                     | nan          | nan        |
 | Github of Progress                                                                                               | To Do    | nan                     | nan          | nan        |
 | TO PASS: Minutes of the meeting, GitHub progress                                                                 | To Do    | nan                     | nan          | nan        |
-| Week 11-12 - Activity 9 - Implementation: Sprint Iteration 4                                                     | To Do    | Alliah Oliveros         | 2025/10/28   | 2025/11/11 |
+| Week 11-12 - Activity 9 - Implementation: Sprint Iteration 4                                                     | Done     | Alliah Oliveros         | 2025/10/28   | 2025/11/11 |
 | Presentation of Project                                                                                          | To Do    | nan                     | nan          | nan        |
 | Presentation of Project                                                                                          | To Do    | nan                     | nan          | nan        |
 | GitHub link of progress + README of how to setup and run program                                                 | To Do    | nan                     | nan          | nan        |
